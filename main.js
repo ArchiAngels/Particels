@@ -1,5 +1,6 @@
 const canv = document.querySelector('.canvas');
 const ctx = canv.getContext('2d');
+const pre_displ = document.querySelector('.loader');
 canv.width = 1 * window.innerWidth;
 canv.height = 1 * window.innerHeight;
 let startups;
@@ -7,20 +8,21 @@ let start_sC;
 let start_Live;
 let countClik = 0;
 
-    startups = setInterval(blum,30);
+    // startups = setInterval(blum,30);
     start_sC = setInterval(spawnCircl,30);
 window.addEventListener('click',()=>{    
     countClik++;
     if(countClik == 1){
-        start_Live = setInterval(need,30);
+        clearInterval(start_Live);
     }
     else{
         countClik = 0;
-        clearInterval(start_Live);
+        start_Live = setInterval(need,30);
         
     }
     // liveCircle(arrXx,arrYy);
 });
+
 
 let b = 0;
 let nums = [];
@@ -42,19 +44,31 @@ let arrXx = [];
 let arrYy = [];
 let circleSize = 5;
 let maxCircle = 2*46.5;
+let points = '';
 function spawnCircl(){
     sC++;
+    // points += '.';
     arrXx.push(Math.random()*canv.width);
     arrYy.push(Math.random()*canv.height);
     clearCanv();
-
+    if(sC%9 == 0){
+        points = '';
+    }
+    if(sC%3 == 0){
+        points += '.';
+    }
     if(sC == maxCircle){
+        pre_displ.classList.add('hide');
         DrawCircles(arrXx,arrYy);
         clearInterval(start_sC);
         DrawLines(arrXx,arrYy);
         sC = 0;
+        start_Live = setInterval(need,30);
         // arrXx = [];
         // arrYy = [];
+    }
+    else{
+        pre_displ.innerHTML = `<div class='fade'><p>Please wait </p><p>${points}</p></div><p>${Math.round(sC*100/maxCircle)}%</p>`;
     }
 }
 function clearCanv(){
@@ -155,7 +169,7 @@ function liveCircle(x,y){
         }
         else{
             if(maxCircle%3 == 0){
-                console.log(maxCircle%3,3);
+                // console.log(maxCircle%3,3);
                 for(let j =0; j< maxCircle;j++){
                     if(j%3 == 0){
                         changeSpeed(j,j,speedCircle+j*0.05,speedCircle+j*0.05);
