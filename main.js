@@ -1,75 +1,69 @@
 const canv = document.querySelector('.canvas');
 const ctx = canv.getContext('2d');
 const pre_displ = document.querySelector('.loader');
-canv.width = 1 * window.innerWidth;
-canv.height = 1 * window.innerHeight;
-let startups;
-let start_sC;
+resize_all();
+let start_Part_count ;
 let start_Live;
-let countClik = 0;
+let countClik = true;
 
-    // startups = setInterval(blum,30);
-    start_sC = setInterval(spawnCircl,30);
+
 window.addEventListener('click',()=>{    
-    countClik++;
-    if(countClik == 1){
+    if(countClik){
+        countClik = false;
         clearInterval(start_Live);
     }
     else{
-        countClik = 0;
-        start_Live = setInterval(need,30);
+        countClik = true;
+        start_Live = setInterval(liveCircle,30);
         
     }
-    // liveCircle(arrXx,arrYy);
 });
+window.addEventListener('resize',function(){
+    resize_all();
+})
 
 
-let b = 0;
-let nums = [];
-
-function blum(){
-    b++;
-    let num = (Math.random()*255).toFixed(2);
-    nums.push(num);
-    console.log(`${num}     ${((num)/255).toFixed(3)}       B:${b}`);
-    if( b == 3){
-        clearInterval(startups);
-        b = 0;
-        nums = [];
-    }
-    
+let infoAboutPartcilces = {
+    id:0,
+    coorX:[],
+    coorY:[],
+    speedX:[],
+    speedY:[],
+    circlesize:5,
+    maxCircle:Math.round(window.innerWidth/300)*15,
+    defSpeed:3,
+    positiv:[]
 }
-let sC = 0;
-let arrXx = [];
-let arrYy = [];
-let circleSize = 5;
-let maxCircle = 2*46.5;
-let points = '';
+start_Part_count = setInterval(spawnCircl,30);
 function spawnCircl(){
-    sC++;
-    // points += '.';
-    arrXx.push(Math.random()*canv.width);
-    arrYy.push(Math.random()*canv.height);
+    let points = '';
+
+    infoAboutPartcilces.coorX.push(Math.random()*canv.width);
+    infoAboutPartcilces.coorY.push(Math.random()*canv.height);
+
+    changeDxDy(infoAboutPartcilces.id);
     clearCanv();
-    if(sC%9 == 0){
+
+    if(infoAboutPartcilces.id%9 == 0){
         points = '';
     }
-    if(sC%3 == 0){
+    if(infoAboutPartcilces.id%3 == 0){
         points += '.';
     }
-    if(sC == maxCircle){
+    if(infoAboutPartcilces.id == infoAboutPartcilces.maxCircle){
         pre_displ.classList.add('hide');
-        DrawCircles(arrXx,arrYy);
-        clearInterval(start_sC);
-        DrawLines(arrXx,arrYy);
-        sC = 0;
-        start_Live = setInterval(need,30);
-        // arrXx = [];
-        // arrYy = [];
+
+        DrawCircles(infoAboutPartcilces.coorX,infoAboutPartcilces.coorY);
+        clearInterval(start_Part_count);
+        DrawLines(infoAboutPartcilces.coorX,infoAboutPartcilces.coorY);
+
+        infoAboutPartcilces.id = 0;
+        start_Live = setInterval(liveCircle,30);
     }
     else{
-        pre_displ.innerHTML = `<div class='fade'><p>Please wait </p><p>${points}</p></div><p>${Math.round(sC*100/maxCircle)}%</p>`;
+        pre_displ.innerHTML = `<div class='fade'><p>Please wait </p><p>${points}</p></div><p>${Math.round(infoAboutPartcilces.id*100/infoAboutPartcilces.maxCircle)}%</p>`;
     }
+    infoAboutPartcilces.id++;
 }
 function clearCanv(){
     ctx.beginPath();
@@ -78,7 +72,7 @@ function clearCanv(){
 }
 let Distance_draw_line = 228;
 function DrawLines(x,y){
-    if( x.length == y.length){
+    
         for(let i = 0; i< x.length;i++){
             for( let j = 0; j < x.length; j++){
                 if(i+1 <= x.length ){
@@ -93,124 +87,103 @@ function DrawLines(x,y){
                         ctx.stroke();
                     }
                     if(x[i] > canv.width){
-                        x[i] = 0;
+                        // x[i] = 0;
+                        changeDxDy(i,-1,'change','notchange');
                     }
                     if(x[i] < 0){
-                        x[i] = canv.width;
+                        // x[i] = canv.width;
+                        changeDxDy(i,1,'change','notchange');
                     }
                     if(y[i] > canv.height){
-                        y[i] = 0;
+                        // y[i] = 0;
+                        changeDxDy(i,-1,'notchange','change');
                     }
                     if( y[i] < 0){
-                        y[i] = canv.height;
+                        // y[i] = canv.height;
+                        changeDxDy(i,1,'notchange','change');
                     }
                     
                 }
-                else{
-                    // console.log('Out of the Range DrawLines');
-                    break;
-                }
+                
             }
         }
-    }
-    // else{
-    //     console.log(`${x==y} arrLength`);
-    //     break;
-    // }
 }
 function DrawCircles(x,y){
     // console.log('DRAED');
     if( x.length == y.length){
         for(let i = 0; i < y.length; i++){
             ctx.beginPath();
-            ctx.arc(x[i], y[i], 0, 0, 2 * Math.PI);
+            ctx.arc(x[i], y[i], 10, 0, 2 * Math.PI);
             ctx.strokeStyle = 'rgba(0,0,255,0.4)';
             // ctx.font = "15px Arial";
             // ctx.fillText('Прости меня',x[i]-24,y[i]);
             ctx.stroke();
         }
     }
-    // else{
-    //     console.log(`${x==y} arrLength`);
-    //     break;
-    // }
 }
-let mainX,mainY;
-let currentMatrix = [];
 function DistanceBetwenCirc(x,y,xX,yY){
-    currentMatrix = [];
-    // console.log(x,y,xX,yY);
-    // console.log((mainX+mainY)*0.5);
+    let mainX,mainY;
+    let currentMatrix = [];
+
     if( xX != undefined && yY != undefined && x != xX && y != yY){
         mainX = Math.max(x,xX) -Math.min(x,xX) ;
         mainY =  Math.max(y,yY) -Math.min(y,yY);
         currentMatrix.push(Math.sqrt(Math.pow(mainX,2)+Math.pow(mainY,2)));
         // console.log(mainX,mainY,mainX >= 0.49 || mainY >= 0.49); 
     }
-    // console.log('MAX:',currentMatrix);
-    // console.log(mainX,mainY,Math.sqrt(Math.pow(mainX,2)+Math.pow(mainY,2)));
     return Math.sqrt(Math.pow(mainX,2)+Math.pow(mainY,2))
     
 }
-function need(){
-    liveCircle(arrXx,arrYy);
-}
-let speedCircle = 1;
-function liveCircle(x,y){
-    // console.log("LIVE");
-    // console.log(maxElems);
-    clearCanv();
-    if(maxCircle%5 == 0){
-        console.log(maxCircle%5,5);
-    }
-    else{
-        if(maxCircle%4 == 0){
-            console.log(maxCircle%4,4);
-        }
-        else{
-            if(maxCircle%3 == 0){
-                // console.log(maxCircle%3,3);
-                for(let j =0; j< maxCircle;j++){
-                    if(j%3 == 0){
-                        changeSpeed(j,j,speedCircle+j*0.05,speedCircle+j*0.05);
-                    }
-                    else{
-                        if(j%2==0){
-                            changeSpeed(j,j,speedCircle,-speedCircle-j*.05);
-                        }
-                        else{
-                            changeSpeed(j,j,-speedCircle-j*0.05,speedCircle+j*0.05);
-                        }
-                    }
-                }
-            }
-            else{
-                if(maxCircle%2 == 0){
-                    // console.log(maxCircle%2,2);
-                    for(let j = 0; j<maxCircle;j++){
-                        if(j%2 == 0){
-                            changeSpeed(j,j,speedCircle,-speedCircle);
-                        }
-                        else{
-                            changeSpeed(j,j,-speedCircle*2,speedCircle);
-                        }
-                    }
-                }
-                else{
-                    // console.log(maxCircle,1);
-                    changeSpeed(x,y,speedCircle,speedCircle);
-                }
-            }
-        }
-    }
 
-    // DrawCircles(arrXx,arrYy);..............
-    DrawLines(arrXx,arrYy);
+function liveCircle(){
+
+    clearCanv();
+    for(let j = 0; j < infoAboutPartcilces.maxCircle; j++){
+        changeSpeed(j,j, // Coors X,y
+            infoAboutPartcilces.speedX[j] ,// Speed X
+            infoAboutPartcilces.speedY[j] )// Speed Y
+    }
+    
+
+    // DrawCircles(infoAboutPartcilces.coorX,infoAboutPartcilces.coorY);
+    DrawLines(infoAboutPartcilces.coorX,infoAboutPartcilces.coorY);
             
+}
+function changeDxDy(index,positiv = 1,dx = 'change',dy = 'change'){
+    infoAboutPartcilces.positiv[index] = positiv;
+    infoAboutPartcilces.speedX[index] = (dx == 'change'? infoAboutPartcilces.positiv[index]*(Math.random()*infoAboutPartcilces.defSpeed): infoAboutPartcilces.speedX[index]);
+    infoAboutPartcilces.speedY[index] = (dy == 'change'? infoAboutPartcilces.positiv[index]*(Math.random()*infoAboutPartcilces.defSpeed): infoAboutPartcilces.speedY[index]);  
+}
+function updateAllspeed(){
+    for(let i = 0; i < infoAboutPartcilces.maxCircle;i++){
+        changeDxDy(i,infoAboutPartcilces.positiv[i]);
+    }
 }
 
 function changeSpeed(x,y,spx,spy){
-    arrXx[x]+=spx;
-    arrYy[y]+=spy;
-    // console.log(x,y,arrXx[x],arrYy[y]);
+    infoAboutPartcilces.coorX[x]+=spx;
+    infoAboutPartcilces.coorY[y]+=spy;
 }
+function resize_all(){
+    canv.width = 1 * window.innerWidth;
+    canv.height = 1 * window.innerHeight;
+}
+window.addEventListener('keyup',function(event){
+    switch(event.key){
+        case 'ArrowUp':{
+            infoAboutPartcilces.defSpeed++;
+            updateAllspeed();
+            console.log('Up speed',infoAboutPartcilces.defSpeed);
+            break;
+        }
+        case 'ArrowDown':{
+            infoAboutPartcilces.defSpeed--;
+            updateAllspeed();
+            console.log('Down speed',infoAboutPartcilces.defSpeed);
+            break;
+        }
+        default:{
+            console.log('ooops we dont know this key');
+        }
+    }
+})
